@@ -12,7 +12,6 @@
 #include <future>
 
 
-//try creating a PF alg that takes the straight line dist between the two, creates a line equation, and makes shortest path based on least deviation from that line 
 
 
 using namespace std;
@@ -175,8 +174,8 @@ class Graph
         void showAdjTable();
         VertPtrSet getVertPtrSet() const {return vertPtrSet;}
         void clear();
-        vector<VertPtr> createPath(const Object& source, const Object& dest);//TODO: find a way to elegantly fail if path doesn't exist
-        vector<VertPtr> createPathStraightLine1(const Object& source, const Object& dest);//pretty damn good shit right here 
+        vector<VertPtr> POLRPath(const Object& source, const Object& dest);//TODO: find a way to elegantly fail if path doesn't exist
+        vector<VertPtr> straightLineDevPath(const Object& source, const Object& dest);//pretty damn good shit right here 
         void resetVertices();
         vector<VertPtr> aStar(const Object& source, const Object& dest);
 
@@ -186,8 +185,6 @@ class Graph
         CostType findMinCost(VertPtr v, vector<VertPtr>& oppFront);
         vector<VertPtr> getPath();
         vector<VertPtr> getAStarPath(VertPtr e);
-        double getDeviation(pair<double, double>& ln, VertPtr Vert, VertPtr s);
-        double theoreticalDist(pair<double, double>& ln, CostType x, VertPtr s);
         pair<double, double> createLine(VertPtr f, VertPtr s);
         double getDeviation1(pair<double, double>& ln, VertPtr Vert, VertPtr s);
         double theoreticalDist1(pair<double, double>& ln, CostType x, VertPtr s);
@@ -295,7 +292,7 @@ Vertex<Object, CostType>* Graph<Object, CostType>::getVertexWithThisData(const O
 
 
 template <class Object, class CostType>
-vector<Vertex<Object, CostType>* > Graph<Object, CostType>::createPath(const Object& source, const Object& dest)
+vector<Vertex<Object, CostType>* > Graph<Object, CostType>::POLRPath(const Object& source, const Object& dest)
 {
     //TODO: maybe make another priority_queue or revise algorithm to also take into account deviation from straight line distance between the two points
     //auto 
@@ -422,6 +419,7 @@ void Graph<Object, CostType>::resetVertices()
         v->dist = Vert::INFINITY_VT;
         v->estimatedCost = Vert::INFINITY_VT;
         v->totalCost = Vert::INFINITY_VT;
+        v->error = static_cast<double>(1);
     }
 }
 
@@ -547,31 +545,6 @@ pair<double, double> Graph<Object, CostType>::createLine(VertPtr f, VertPtr s)
 }
 
 template <class Object, class CostType>
-double Graph<Object, CostType>::theoreticalDist(pair<double, double>& ln, CostType x, VertPtr s)
-{
-    //This is probably better in general
-    /*
-    double X = static_cast<double>(x);
-    double xDif = (X - static_cast<double>(s->x));
-    double funcY = static_cast<double>( (ln.first*(double)x + ln.second));
-    double yDif = (funcY- static_cast<double>(s->y));
-    return sqrt( (xDif*xDif) + (yDif*yDif));
-    */
-    //this is better when working with straight line distanecs between points
-    double y = static_cast<double>(ln.first*(double)x + ln.second);
-    return y;
-}
-
-template <class Object, class CostType>
-double Graph<Object, CostType>::getDeviation(pair<double, double>& ln, VertPtr vert, VertPtr s)
-{
-    double theoretical = theoreticalDist(ln, vert->x, s);
-    //dist is better in general, but y is better in straight line graphs
-    double top = static_cast<double>(vert->y/*dist*/ - theoretical);
-    return abs(top/theoretical);
-}
-
-template <class Object, class CostType>
 double Graph<Object, CostType>::theoreticalDist1(pair<double, double>& ln, CostType x, VertPtr s)
 {
     //This is probably better in general
@@ -592,12 +565,12 @@ double Graph<Object, CostType>::getDeviation1(pair<double, double>& ln, VertPtr 
 }
 
 template <class Object, class CostType>
-vector<Vertex<Object, CostType>* > Graph<Object, CostType>::createPathStraightLine1(const Object& source, const Object& dest)//workhorse right here
+vector<Vertex<Object, CostType>* > Graph<Object, CostType>::straightLineDevPath(const Object& source, const Object& dest)//workhorse right here
 {
+    resetVertices();
     auto cmp = [](VertPtr a, VertPtr b){return (*a > *b);}; 
     auto s = getVertexWithThisData(source);
     auto e = getVertexWithThisData(dest);
-    resetVertices();
     auto ln = createLine(s, e);
     VertPtr q = s;
     //either make queue out of vertices with least deviation from main line at point, or least deviation of distance from start to vert as from start to point on line 

@@ -118,7 +118,7 @@ int main()
                 aStarTime.push_back(tm);
 
                 startTime = clock();
-                path = g.createPath(x, y);
+                path = g.POLRPath(x, y);
                 stopTime = clock();
                 tm = ((double)(stopTime - startTime) / (double)CLOCKS_PER_SEC);
                 POLRDist.push_back(getCostOfPath(path));
@@ -126,7 +126,7 @@ int main()
 
 
                 startTime = clock();
-                path = g.createPathStraightLine1(x, y);
+                path = g.straightLineDevPath(x, y);
                 stopTime = clock();
                 tm = ((double)(stopTime - startTime) / (double)CLOCKS_PER_SEC);
                 leastDeviationLDist.push_back(getCostOfPath(path));
