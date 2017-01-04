@@ -597,6 +597,7 @@ vector<Vertex<Object, CostType>* > Graph<Object, CostType>::createPathStraightLi
     auto cmp = [](VertPtr a, VertPtr b){return (*a > *b);}; 
     auto s = getVertexWithThisData(source);
     auto e = getVertexWithThisData(dest);
+    resetVertices();
     auto ln = createLine(s, e);
     VertPtr q = s;
     //either make queue out of vertices with least deviation from main line at point, or least deviation of distance from start to vert as from start to point on line 
